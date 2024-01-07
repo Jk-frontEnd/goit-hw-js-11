@@ -1,1 +1,86 @@
-/*# sourceMappingURL=main.css.map */
+form {
+  position: fixed;
+  width: 100%;
+  background-color: rgb(126, 28, 146);
+  top: 0;
+  left: 0;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  font-size: 24px;
+}
+
+input {
+  height: 24px;
+  padding: 8px;
+  font-size: 20px;
+  background: transparent;
+  color: white;
+  border: 2px solid white;
+}
+
+input:hover {
+  fill: rgb(255, 116, 255);
+  border-color: rgb(255, 116, 255);
+}
+
+input::-moz-placeholder {
+  color: white;
+}
+
+input::placeholder {
+  color: white;
+}
+
+button {
+  height: 44px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  fill: white;
+  border: 2px solid white;
+}
+
+button:hover {
+  fill: rgb(255, 116, 255);
+  border-color: rgb(255, 116, 255);
+}
+
+body {
+  background-color: rgb(22, 22, 22);
+}
+
+.gallery {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.photo-card {
+  margin: 0;
+  background-color: rgb(81, 81, 81);
+  padding: 0px;
+}
+
+img {
+  margin: 0;
+  padding: 0;
+}
+
+.info {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}/*# sourceMappingURL=main.css.map */
