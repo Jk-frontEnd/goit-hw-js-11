@@ -7,22 +7,32 @@ import 'basiclightbox/dist/basiclightbox.min.css';
 const form = document.querySelector('form');
 const input = document.querySelector('input');
 const gallery = document.querySelector('.gallery');
+const loader = document.querySelector(".lds-dual-ring");
 const loadMoreBtn = document.querySelector('.load-more');
 
 const BASE_URL = 'https://pixabay.com/api/?orientation=horizontal&safesearch=true&image_type=photo';
 const KEY = '41687911-62b9e6d772891b12bf67d3c73';
 
+hideLoader();
 form.addEventListener('submit', async (evt) => {
     evt.preventDefault();
+    hideGallery();
+    hideLoadBtn();
+    await showLoader();
     currentPage = 1; 
     await fetchImages();
-    loadMoreBtn.classList.remove('visually-hidden');
-    console.log(totalHits);
+    showGallery();
+    showLoadBtn();
+    await Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`)
+    await hideLoader();
 });
 
 loadMoreBtn.addEventListener('click', async () => {
     currentPage++;
+    showLoader();
     await fetchImages();
+    showLoadBtn();
+    await hideLoader()
 });
 
 gallery.addEventListener('click', (evt) => {
@@ -73,7 +83,6 @@ function createMarkup(keyword) {
         .join('');
 }
 
-
 function createModal(largeImageURL, tags) {
     const instance = basicLightbox.create(`
         <div class="modal">
@@ -84,6 +93,33 @@ function createModal(largeImageURL, tags) {
     instance.show();
 }
 
+//load btn visibility
+async function hideLoadBtn() {
+    await loadMoreBtn.classList.add('visually-hidden');
+}
+
+async function showLoadBtn() {
+    await loadMoreBtn.classList.remove('visually-hidden');
+}
+
+//gallery btn visibility
+async function hideGallery() {
+    await gallery.classList.add('visually-hidden');
+}
+
+async function showGallery() {
+    await gallery.classList.remove('visually-hidden');
+}
+
+
+//loader visibility
+async function hideLoader() {
+    await loader.classList.add('visually-hidden');
+}
+
+async function showLoader() {
+    await loader.classList.remove('visually-hidden');
+}
 
 let currentPage = 1;
 let totalHits = 0;
@@ -107,11 +143,11 @@ async function fetchImages() {
             if (currentPage * 40 < totalHits) {
                loadMoreBtn.style.display = 'flex';
             } else {
-                loadMoreBtn.classList.add('visually-hidden');
+                hideLoadBtn();;
                 //loadMoreBtn.style.display = 'none';
             }
         } else {
-            loadMoreBtn.classList.add('visually-hidden');
+            hideLoadBtn();;
             console.error('Invalid data format:', data);
             Notiflix.Notify.failure('Failed to fetch images. Please try again later.');
         }
