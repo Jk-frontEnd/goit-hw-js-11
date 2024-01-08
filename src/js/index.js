@@ -1,6 +1,8 @@
 import axios from "axios";
 import Notiflix from "notiflix";
-import * as basicLightbox from 'basiclightbox'
+import * as basicLightbox from 'basiclightbox';
+import 'basiclightbox/dist/basiclightbox.min.css';
+
 
 const form = document.querySelector('form');
 const input = document.querySelector('input');
@@ -13,6 +15,13 @@ const KEY = '41687911-62b9e6d772891b12bf67d3c73';
 form.addEventListener('submit', async (evt) => {
     evt.preventDefault();
     currentPage = 1; 
+    await fetchImages();
+    loadMoreBtn.classList.remove('visually-hidden');
+    console.log(totalHits);
+});
+
+loadMoreBtn.addEventListener('click', async () => {
+    currentPage++;
     await fetchImages();
 });
 
@@ -30,46 +39,49 @@ gallery.addEventListener('click', (evt) => {
 
 function createMarkup(keyword) {
     return keyword
-        //{ webformatURL, largeImageURL, tags, likes, views, comments, downloads } =>
-        .map(({ webformatURL, largeImageURL, tags, likes, views, comments, downloads }) =>
-        `<div class="photo-card">
-            <img src="${webformatURL}" alt="${tags}" loading="lazy" />
-            <div class="info">
-                <p class="info-item">
-                <b>Likes</b>
-                ${likes}
-                </p>
-                <p class="info-item">
-                <b>Views</b>
-                ${views}
-                </p>
-                <p class="info-item">
-                <b>Comments</b>
-                ${comments}
-                </p>
-                <p class="info-item">
-                <b>Downloads</b>
-                ${downloads}
-                </p>
-            </div>
-        </div>`)
-        .join('')
+        .map(({ webformatURL, tags, likes, views, comments, downloads }) => {
+            return `
+                <div class="photo-card">
+                    <div class="img-box-set">
+                        <img src="${webformatURL}" alt="${tags}" loading="lazy" width="420px"/>
+                    </div>
+                    <div class="info">
+                    <p class="info-item">
+                        <b>Likes</b>
+                        ${likes}
+                    </p>
+                    <p class="info-item">
+                        <b>Views</b>
+                        ${views}
+                    </p>
+                    <p class="info-item">
+                        <b>Comments</b>
+                        ${comments}
+                    </p>
+                    <p class="info-item">
+                        <b>Downloads</b>
+                        ${downloads}
+                    </p>
+                    </div>
+                </div>`;
+        })
+        .join('');
 }
+
 
 function createModal(largeImageURL, tags) {
     const instance = basicLightbox.create(`
-        <img src="${largeImageURL}" alt="${tags}"/>
-    `);
+        <div class="modal">
+            <div class="modal-img-box">
+                <img class="modal-img" src="${largeImageURL}" alt="${tags}" />
+            </div>
+        </div>`);
     instance.show();
 }
 
+
 let currentPage = 1;
 let totalHits = 0;
-
-loadMoreBtn.addEventListener('click', async () => {
-    currentPage++;
-    await fetchImages();
-});
 
 async function fetchImages() {
     const searchQuery = input.value;
@@ -88,17 +100,19 @@ async function fetchImages() {
             }
 
             if (currentPage * 40 < totalHits) {
-                loadMoreBtn.style.display = 'block';
+               loadMoreBtn.style.display = 'flex';
             } else {
-                loadMoreBtn.style.display = 'none';
+                loadMoreBtn.classList.add('visually-hidden');
+                //loadMoreBtn.style.display = 'none';
             }
         } else {
+            loadMoreBtn.classList.add('visually-hidden');
             console.error('Invalid data format:', data);
             Notiflix.Notify.failure('Failed to fetch images. Please try again later.');
         }
+
     } catch (error) {
         console.error('Error fetching images:', error);
         Notiflix.Notify.failure('Failed to fetch images. Please try again later.');
     }
 }
-
