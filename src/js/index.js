@@ -35,6 +35,11 @@ gallery.addEventListener('click', (evt) => {
             createModal(largeImageURL, tags);
         }
     }
+    
+    if (evt.target.classList.contains('photo-card') || evt.target.classList.contains('img-box-set')) {
+      const product = findProduct(evt.target);
+      createModal(product);
+    }
 });
 
 function createMarkup(keyword) {
