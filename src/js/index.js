@@ -14,6 +14,7 @@ const BASE_URL = 'https://pixabay.com/api/?orientation=horizontal&safesearch=tru
 const KEY = '41687911-62b9e6d772891b12bf67d3c73';
 
 hideLoader();
+
 form.addEventListener('submit', async (evt) => {
     evt.preventDefault();
     hideGallery();
