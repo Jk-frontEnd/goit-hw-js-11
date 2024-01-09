@@ -1,7 +1,7 @@
 import axios from "axios";
 import Notiflix from "notiflix";
-import * as basicLightbox from 'basiclightbox';
-import './dist/basicLightbox.min.css';
+import SimpleLightbox from "simplelightbox";
+import "simplelightbox/dist/simple-lightbox.min.css";
 
 const form = document.querySelector('form');
 const input = document.querySelector('input');
@@ -13,6 +13,7 @@ const BASE_URL = 'https://pixabay.com/api/?orientation=horizontal&safesearch=tru
 const KEY = '41687911-62b9e6d772891b12bf67d3c73';
 
 hideLoader();
+hideLoadBtn();
 
 form.addEventListener('submit', async (evt) => {
     evt.preventDefault();
@@ -23,16 +24,16 @@ form.addEventListener('submit', async (evt) => {
     await fetchImages();
     showGallery();
     showLoadBtn();
-    await Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`)
+    await Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
     await hideLoader();
 });
 
 loadMoreBtn.addEventListener('click', async () => {
     currentPage++;
-    showLoader();
+    await showLoader();
     await fetchImages();
     showLoadBtn();
-    await hideLoader()
+    await hideLoader();
 });
 
 gallery.addEventListener('click', (evt) => {
@@ -47,36 +48,40 @@ gallery.addEventListener('click', (evt) => {
     }
     
     if (evt.target.classList.contains('photo-card') || evt.target.classList.contains('img-box-set')) {
-      const product = findProduct(evt.target);
-      createModal(product);
+        const product = findProduct(evt.target);
+        createModal(product);
     }
 });
 
 function createMarkup(keyword) {
     return keyword
-        .map(({ webformatURL, tags, likes, views, comments, downloads }) => {
+        .map(({ webformatURL, tags, likes, views, comments, downloads, largeImageURL }) => {
             return `
-                <div class="photo-card">
-                    <div class="img-box-set">
-                        <img src="${webformatURL}" alt="${tags}" loading="lazy" width="420px"/>
-                    </div>
-                    <div class="info">
-                    <p class="info-item">
-                        <b>Likes</b>
-                        ${likes}
-                    </p>
-                    <p class="info-item">
-                        <b>Views</b>
-                        ${views}
-                    </p>
-                    <p class="info-item">
-                        <b>Comments</b>
-                        ${comments}
-                    </p>
-                    <p class="info-item">
-                        <b>Downloads</b>
-                        ${downloads}
-                    </p>
+                <div href="${webformatURL}" data-lightbox="gallery" data-title="${tags}">
+                    <div class="photo-card">
+                        <div class="img-box-set">
+                            <a href=${largeImageURL}>
+                                <img src="${webformatURL}" alt="${tags}" loading="lazy" width="420px"/>
+                            </a>
+                        </div>
+                        <div class="info">
+                            <p class="info-item">
+                                <b>Likes</b>
+                                ${likes}
+                            </p>
+                            <p class="info-item">
+                                <b>Views</b>
+                                ${views}
+                            </p>
+                            <p class="info-item">
+                                <b>Comments</b>
+                                ${comments}
+                            </p>
+                            <p class="info-item">
+                                <b>Downloads</b>
+                                ${downloads}
+                            </p>
+                        </div>
                     </div>
                 </div>`;
         })
@@ -84,25 +89,29 @@ function createMarkup(keyword) {
 }
 
 function createModal(largeImageURL, tags) {
-    const instance = basicLightbox.create(`
-        <div class="modal">
-            <div class="modal-img-box">
-                <img class="modal-img" src="${largeImageURL}" alt="${tags}" />
-            </div>
-        </div>`);
-    instance.show();
+    try {
+        const instance = simpleLightbox.create(`
+            <div class="modal">
+                <div class="modal-img-box">
+                    <img class="modal-img" src="${largeImageURL}" alt="${tags}" />
+                </div>
+            </div>`);
+        instance.show();
+    } catch (error) {
+        console.error('Error creating modal:', error);
+    }
 }
 
-//load btn visibility
+// load btn visibility
 async function hideLoadBtn() {
-    await loadMoreBtn.classList.add('visually-hidden');
+    await loadMoreBtn.classList.toggle('visually-hidden');
 }
 
 async function showLoadBtn() {
     await loadMoreBtn.classList.remove('visually-hidden');
 }
 
-//gallery btn visibility
+// gallery btn visibility
 async function hideGallery() {
     await gallery.classList.add('visually-hidden');
 }
@@ -111,8 +120,7 @@ async function showGallery() {
     await gallery.classList.remove('visually-hidden');
 }
 
-
-//loader visibility
+// loader visibility
 async function hideLoader() {
     await loader.classList.add('visually-hidden');
 }
@@ -140,20 +148,65 @@ async function fetchImages() {
                 gallery.innerHTML += createMarkup(data);
             }
 
+            const lightbox = new SimpleLightbox('.gallery [data-lightbox="gallery"]');
+            lightbox.refresh();
+
             if (currentPage * 40 < totalHits) {
-               loadMoreBtn.style.display = 'flex';
+                loadMoreBtn.style.display = 'flex';
             } else {
-                hideLoadBtn();;
-                //loadMoreBtn.style.display = 'none';
+                hideLoadBtn();
+                // loadMoreBtn.style.display = 'none';
+            }
+             if (currentPage * 40 >= totalHits) {
+                hideLoadBtn();
             }
         } else {
-            hideLoadBtn();;
-            console.error('Invalid data format:', data);
-            Notiflix.Notify.failure('Failed to fetch images. Please try again later.');
+            hideGallery();
+            Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.');
         }
-
     } catch (error) {
+        hideLoadBtn();
         console.error('Error fetching images:', error);
         Notiflix.Notify.failure('Failed to fetch images. Please try again later.');
     }
 }
+
+
+async function createModal(evt, largeImageURL, tags) {
+  evt.preventDefault();
+
+  if (!evt.target.classList.contains("photo-card")) {
+    return;
+  }
+    try {
+        const instance = simpleLightbox(
+            `<img class="modal-img" src="${largeImageURL}" alt="${tags}">`,
+            {
+                onShow: (instance) => {
+                    document.addEventListener("keydown", onEscKeyPress);
+                },
+                onClose: (instance) => {
+                    document.removeEventListener("keydown", onEscKeyPress);
+                },
+            }
+        );
+        instance.show();
+    } catch {
+        console.error('Error creating modal:', error);
+    }
+
+  function onEscKeyPress(event) {
+    if (event.code === "Escape") {
+      instance.close();
+    }
+  }
+}
+
+new SimpleLightbox('.gallery a', {
+  captions: true,
+  captionType: 'attr',
+  captionsData: 'alt',
+  captionPosition: 'bottom',
+  captionDelay: 250,
+});
+
