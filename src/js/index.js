@@ -1,7 +1,7 @@
 import axios from "axios";
 import Notiflix from "notiflix";
 import * as basicLightbox from 'basiclightbox';
-import 'basiclightbox/dist/basiclightbox.min.css';
+import 'dist/basiclightbox.min.css';
 
 
 const form = document.querySelector('form');
