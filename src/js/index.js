@@ -17,22 +17,44 @@ hideLoadBtn();
 
 form.addEventListener('submit', async (evt) => {
     evt.preventDefault();
+    clearGallery();
     hideGallery();
     hideLoadBtn();
-    await showLoader();
+    showLoader();
     currentPage = 1; 
-    await fetchImages();
-    showGallery();
-    showLoadBtn();
-    await Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
-    await hideLoader();
+
+    try {
+        await fetchImages();
+
+        if (totalHits === 0) {
+            hideLoadBtn();
+            hideGallery();
+            Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.');
+        } else {
+            showGallery();
+            showLoadBtn();
+            await Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
+        }
+    } catch (error) {
+        console.error('Error submitting form:', error);
+        Notiflix.Notify.failure('Failed to fetch images. Please try again later.');
+    } finally {
+        await hideLoader();
+    }
 });
 
 loadMoreBtn.addEventListener('click', async () => {
-    currentPage++;
+    hideLoadBtn();
     await showLoader();
+    currentPage++;
     await fetchImages();
-    showLoadBtn();
+
+    if (currentPage * 40 < totalHits) {
+        showLoadBtn();
+    } else {
+        hideLoadBtn();
+        Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
+    }
     await hideLoader();
 });
 
@@ -52,6 +74,96 @@ gallery.addEventListener('click', (evt) => {
         createModal(product);
     }
 });
+
+gallery.addEventListener('scroll', () => {
+    if (currentPage * 40 < totalHits) {
+        showLoadBtn();
+    } else {
+        hideLoadBtn();
+        Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
+    }
+});
+
+const { height: cardHeight } = document
+  .querySelector(".gallery")
+  .firstElementChild.getBoundingClientRect();
+
+window.scrollBy({
+  top: cardHeight * 2,
+  behavior: "smooth",
+});
+
+let currentPage = 1;
+let totalHits = 0;
+
+async function fetchImages() {
+    const searchQuery = input.value;
+    const url = `${BASE_URL}&q=${searchQuery}&key=${KEY}&page=${currentPage}&per_page=40`;
+
+    try {
+        const response = await axios.get(url);
+        const data = response.data.hits;
+        totalHits = response.data.totalHits;
+
+        if (currentPage * 40 < totalHits) {
+        showLoadBtn();
+    } else {
+        hideLoadBtn();
+        Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
+    }
+
+
+        if (data && Array.isArray(data) && data.length > 0) {
+            if (currentPage === 1) {
+                gallery.innerHTML = createMarkup(data);
+            } else {
+                gallery.innerHTML += createMarkup(data);
+            }
+
+            const lightbox = new SimpleLightbox('.gallery [data-lightbox="gallery"]');
+            lightbox.refresh();
+        } else  {
+            hideLoadBtn();
+            hideGallery();
+            Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.');
+        }
+    } catch (error) {
+        hideLoadBtn();
+        console.error('Error fetching images:', error);
+        Notiflix.Notify.failure('Failed to fetch images. Please try again later.');
+    }
+}
+
+async function createModal(evt, largeImageURL, tags) {
+    evt.preventDefault();
+
+    if (!evt.target.classList.contains("photo-card")) {
+        return;
+    }
+
+    try {
+        const instance = simpleLightbox(
+            `<img class="modal-img" src="${largeImageURL}" alt="${tags}">`,
+            {
+                onShow: (instance) => {
+                    document.addEventListener("keydown", onEscKeyPress);
+                },
+                onClose: (instance) => {
+                    document.removeEventListener("keydown", onEscKeyPress);
+                },
+            }
+        );
+        instance.show();
+    } catch(error)  {
+        console.error('Error creating modal:', error);
+    }
+
+  function onEscKeyPress(event) {
+    if (event.code === "Escape") {
+      instance.close();
+    }
+  }
+}
 
 function createMarkup(keyword) {
     return keyword
@@ -102,13 +214,29 @@ function createModal(largeImageURL, tags) {
     }
 }
 
+function clearGallery() {
+    gallery.innerHTML = '';
+}
+
+new SimpleLightbox('.gallery a', {
+  captions: true,
+  captionType: 'attr',
+  captionsData: 'alt',
+  captionPosition: 'bottom',
+  captionDelay: 250,
+});
+
+
+
+//visibility setting functions
+
 // load btn visibility
 async function hideLoadBtn() {
-    await loadMoreBtn.classList.toggle('visually-hidden');
+    loadMoreBtn.classList.add('visually-hidden');
 }
 
 async function showLoadBtn() {
-    await loadMoreBtn.classList.remove('visually-hidden');
+    loadMoreBtn.classList.remove('visually-hidden');
 }
 
 // gallery btn visibility
@@ -128,85 +256,3 @@ async function hideLoader() {
 async function showLoader() {
     await loader.classList.remove('visually-hidden');
 }
-
-let currentPage = 1;
-let totalHits = 0;
-
-async function fetchImages() {
-    const searchQuery = input.value;
-    const url = `${BASE_URL}&q=${searchQuery}&key=${KEY}&page=${currentPage}&per_page=40`;
-
-    try {
-        const response = await axios.get(url);
-        const data = response.data.hits;
-        totalHits = response.data.totalHits;
-
-        if (data && Array.isArray(data) && data.length > 0) {
-            if (currentPage === 1) {
-                gallery.innerHTML = createMarkup(data);
-            } else {
-                gallery.innerHTML += createMarkup(data);
-            }
-
-            const lightbox = new SimpleLightbox('.gallery [data-lightbox="gallery"]');
-            lightbox.refresh();
-
-            if (currentPage * 40 < totalHits) {
-                loadMoreBtn.style.display = 'flex';
-            } else {
-                hideLoadBtn();
-                // loadMoreBtn.style.display = 'none';
-            }
-             if (currentPage * 40 >= totalHits) {
-                hideLoadBtn();
-            }
-        } else {
-            hideGallery();
-            Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.');
-        }
-    } catch (error) {
-        hideLoadBtn();
-        console.error('Error fetching images:', error);
-        Notiflix.Notify.failure('Failed to fetch images. Please try again later.');
-    }
-}
-
-
-async function createModal(evt, largeImageURL, tags) {
-  evt.preventDefault();
-
-  if (!evt.target.classList.contains("photo-card")) {
-    return;
-  }
-    try {
-        const instance = simpleLightbox(
-            `<img class="modal-img" src="${largeImageURL}" alt="${tags}">`,
-            {
-                onShow: (instance) => {
-                    document.addEventListener("keydown", onEscKeyPress);
-                },
-                onClose: (instance) => {
-                    document.removeEventListener("keydown", onEscKeyPress);
-                },
-            }
-        );
-        instance.show();
-    } catch {
-        console.error('Error creating modal:', error);
-    }
-
-  function onEscKeyPress(event) {
-    if (event.code === "Escape") {
-      instance.close();
-    }
-  }
-}
-
-new SimpleLightbox('.gallery a', {
-  captions: true,
-  captionType: 'attr',
-  captionsData: 'alt',
-  captionPosition: 'bottom',
-  captionDelay: 250,
-});
-
