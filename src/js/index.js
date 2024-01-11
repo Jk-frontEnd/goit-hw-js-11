@@ -175,8 +175,6 @@ new SimpleLightbox('.gallery a', {
   captionDelay: 250,
 });
 
-
-
 //visibility setting functions
 
 // load btn visibility
