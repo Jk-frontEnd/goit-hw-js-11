@@ -114,37 +114,6 @@ async function fetchImages() {
     }
 }
 
-async function createModal(evt, largeImageURL, tags) {
-    evt.preventDefault();
-
-    if (!evt.target.classList.contains("photo-card")) {
-        return;
-    }
-
-    try {
-        const instance = simpleLightbox(
-            `<img class="modal-img" src="${largeImageURL}" alt="${tags}">`,
-            {
-                onShow: (instance) => {
-                    document.addEventListener("keydown", onEscKeyPress);
-                },
-                onClose: (instance) => {
-                    document.removeEventListener("keydown", onEscKeyPress);
-                },
-            }
-        );
-        instance.show();
-    } catch(error)  {
-        console.error('Error creating modal:', error);
-    }
-
-  function onEscKeyPress(event) {
-    if (event.code === "Escape") {
-      instance.close();
-    }
-  }
-}
-
 function createMarkup(keyword) {
     return keyword
         .map(({ webformatURL, tags, likes, views, comments, downloads, largeImageURL }) => {
