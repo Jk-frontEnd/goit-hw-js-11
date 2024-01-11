@@ -27,12 +27,13 @@ form.addEventListener('submit', async (evt) => {
         await fetchImages();
 
         if (totalHits === 0) {
-            hideLoadBtn();
             hideGallery();
             Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.');
+        } else if(totalHits <= 40) { 
+            hideLoadBtn();
         } else {
-            showGallery();
             showLoadBtn();
+            showGallery();
             await Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
         }
     } catch (error) {
@@ -88,12 +89,6 @@ async function fetchImages() {
         const data = response.data.hits;
         totalHits = response.data.totalHits;
 
-        if (currentPage * 40 < totalHits) {
-            showLoadBtn();
-        } else {
-            hideLoadBtn();
-        }
-
         if (data && Array.isArray(data) && data.length > 0) {
             if (currentPage === 1) {
                 gallery.innerHTML = createMarkup(data);
@@ -110,6 +105,14 @@ async function fetchImages() {
     } catch (error) {
         hideLoadBtn();
         console.error('Error fetching images:', error);
+    }
+}
+
+async function checkTotalHits(totalHits) {
+    if (totalHits <= 40) {
+        hideLoadBtn(); 
+    } else {
+        showLoadBtn();
     }
 }
 
