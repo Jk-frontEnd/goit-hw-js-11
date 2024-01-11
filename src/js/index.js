@@ -106,7 +106,6 @@ async function fetchImages() {
         } else {
             hideLoadBtn();
             hideGallery();
-            Notiflix.Notify.info('No images found. Please try again with different keywords.');
         }
     } catch (error) {
         hideLoadBtn();
