@@ -31,6 +31,8 @@ form.addEventListener('submit', async (evt) => {
             Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.');
         } else if(totalHits <= 40) { 
             hideLoadBtn();
+            showGallery();
+
         } else {
             showLoadBtn();
             showGallery();
