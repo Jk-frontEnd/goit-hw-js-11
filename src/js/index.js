@@ -2,6 +2,7 @@ import axios from "axios";
 import Notiflix from "notiflix";
 import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
+import { showLoader, showLoadBtn, showGallery, hideGallery, hideLoader, hideLoadBtn } from "./helper/visibility";
 
 const form = document.querySelector('form');
 const input = document.querySelector('input');
@@ -110,7 +111,7 @@ async function fetchImages() {
     }
 }
 
-async function checkTotalHits(totalHits) {
+function checkTotalHits(totalHits) {
     if (totalHits <= 40) {
         hideLoadBtn(); 
     } else {
@@ -178,32 +179,3 @@ new SimpleLightbox('.gallery a', {
   captionPosition: 'bottom',
   captionDelay: 250,
 });
-
-//visibility setting functions
-
-// load btn visibility
-async function hideLoadBtn() {
-    loadMoreBtn.classList.add('visually-hidden');
-}
-
-async function showLoadBtn() {
-    loadMoreBtn.classList.remove('visually-hidden');
-}
-
-// gallery btn visibility
-async function hideGallery() {
-    await gallery.classList.add('visually-hidden');
-}
-
-async function showGallery() {
-    await gallery.classList.remove('visually-hidden');
-}
-
-// loader visibility
-async function hideLoader() {
-    await loader.classList.add('visually-hidden');
-}
-
-async function showLoader() {
-    await loader.classList.remove('visually-hidden');
-}
