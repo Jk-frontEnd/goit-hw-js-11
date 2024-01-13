@@ -10,6 +10,8 @@ const gallery = document.querySelector('.gallery');
 const loader = document.querySelector(".lds-dual-ring");
 const loadMoreBtn = document.querySelector('.load-more');
 
+export { gallery, loader, loadMoreBtn };
+
 const BASE_URL = 'https://pixabay.com/api/?orientation=horizontal&safesearch=true&image_type=photo';
 const KEY = '41687911-62b9e6d772891b12bf67d3c73';
 
@@ -30,14 +32,10 @@ form.addEventListener('submit', async (evt) => {
         if (totalHits === 0) {
             hideGallery();
             Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.');
-        } else if(totalHits <= 40) { 
-            hideLoadBtn();
-            showGallery();
-
         } else {
             showLoadBtn();
             showGallery();
-            await Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
+            Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
         }
     } catch (error) {
         console.error('Error submitting form:', error);

@@ -1,10 +1,11 @@
+import { gallery, loader, loadMoreBtn } from "../index"
 // load btn visibility
 async function hideLoadBtn() {
-    loadMoreBtn.classList.add('visually-hidden');
+    await loadMoreBtn.classList.add('visually-hidden');
 }
 
 async function showLoadBtn() {
-    loadMoreBtn.classList.remove('visually-hidden');
+    await loadMoreBtn.classList.remove('visually-hidden');
 }
 
 // gallery btn visibility
